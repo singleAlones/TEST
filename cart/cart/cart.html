@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+</head>
+<body>
+  <div  id="app" class="container">
+       <my-cart></my-cart>
+  </div>
+  <template id="tplMyCart">
+      <div>
+          <h3>我的购物车</h3>
+          <my-cart-item v-for="(p,i) of cart" :item-price="p.price" :item-count="p.count" :item-index="i" :key="i" @inccount="doIncCount" @redcount="doRedCount"></my-cart-item>
+          <p>总金额:{{sum}}</p>
+      </div>
+  </template>
+  <template id="tplMyCartItem">
+      <div>
+          <span>单价:{{itemPrice}}</span>
+          <button @click="reduce">-</button>
+          <span>{{itemCount}}</span>
+          <button @click="increase">+</button>
+          <span>小计:{{itemPrice*itemCount}}</span>
+      </div>
+  </template>
+  <script src="js/vue.js"></script>
+  <script>
+//      子组件
+       var myCartItem={
+           template:"#tplMyCartItem",
+           props:['item-price','item-count','item-index'],
+           methods:{
+               increase(){
+                   //不允许修改自定义属性  不能改父组件的属性 通过触发自定义事件  通知父组件修改
+              this.$emit("inccount",this.itemIndex)
+                       },
+               reduce(){
+             this.$emit("redcount",this.itemIndex)
+                  }
+         }
+
+       }
+//      父组件
+      var myCart={
+          template:"#tplMyCart",
+          components:{
+              myCartItem
+          },
+          data(){
+              return{
+                  cart:[
+                      {price:2000, count:4},
+                      {price:3000, count:2},
+                      {price:4000, count:1}
+                  ]
+              }
+          },
+          computed:{
+              sum(){
+                  var s=0;
+                  for(var p of this.cart){
+                      s+=p.price*p.count
+                  }
+                  return s;
+              }
+          },
+          methods:{
+              doIncCount(index){
+                  //处理子组件触发的“inccount”事件，把对应商品的购买数量+1
+                  this.cart[index].count++;
+              },
+              doRedCount(index){   //父组件监听并处理事件，并接收数据
+                  this.cart[index].count--;
+                  if(this.cart[index].count<0){
+                      this.cart[index].count=0
+                  }
+              }
+          }
+      }
+      var vm=new Vue({
+          el:"#app",
+          components:{
+              myCart
+          }
+      })
+  </script>
+</body>
+</html>
